@@ -11,7 +11,10 @@ public:
     VehicleData()
         : X(0.0), Y(0.0), Z(0.0), roll(0.0), pitch(0.0), yaw(0.0),
           vx(0.0), vy(0.0), vz(0.0), w_roll(0.0), w_pitch(0.0), w_yaw(0.0),
-          v_wheel{0.0, 0.0, 0.0, 0.0} {}
+          ax(0.0), ay(0.0), az(0.0), a_roll(0.0), a_pitch(0.0), a_yaw(0.0),
+          v_wheel{0.0, 0.0, 0.0, 0.0}, a_wheel{0.0, 0.0, 0.0, 0.0},
+          Fx(0.0), Fy(0.0), Mz(0.0),
+          Fx_wheel{0.0, 0.0, 0.0, 0.0}, Fy_wheel{0.0, 0.0, 0.0, 0.0}, Fz_wheel{0.0, 0.0, 0.0, 0.0} {}
 
     // getters and setters for position
     void getPosition(double &x_, double &y_, double &z_) const
@@ -181,30 +184,17 @@ class TireConfig
 public:
     // constructor
     TireConfig()
-        : B(0.0), C(0.0), D(0.0), E(0.0) {}
-    TireConfig(double B, double C, double D, double E)
-        : B(B), C(C), D(D), E(E) {}
+        : B(0.0), C(0.0), D(0.0), E(0.0), f(0.0) {}
+    TireConfig(double B, double C, double D, double E, double f)
+        : B(B), C(C), D(D), E(E), f(f) {}
 
-    double calculateLateralForce(double slipAngle) const
-    {
-        return D * std::sin(C * std::atan(B * slipAngle - E * (B * slipAngle - std::atan(B * slipAngle))));
-    }
-
-    double calculateLongitudinalForce(double slipRatio) const
-    {
-        return D * std::sin(C * std::atan(B * slipRatio - E * (B * slipRatio - std::atan(B * slipRatio))));
-    }
-
-    double calcCombinedSlipForce(double slipAngle, double slipRatio) const
-    {
-        return 0.0;
-    }
-    double setTireConfig(double B_, double C_, double D_, double E_)
+    double setTireConfig(double B_, double C_, double D_, double E_, double f_)
     {
         B = B_;
         C = C_;
         D = D_;
         E = E_;
+        f = f_;
     }
 
 private:
