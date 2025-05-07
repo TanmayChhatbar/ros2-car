@@ -86,6 +86,17 @@ Read this [section](#understanding-ros) if the question - "Why ROS?"
 - Fork this repository on Github (optional, but recommended if you intend to customize your project and track changes using Git on GitHub)
 - Clone forked repository on computer (clone this repo if you haven't forked)
 
+## Vehicle Simulation in ROS
+
+- Verify file paths for the mesh files in the URDF file
+- Connect joystick controller
+- Navigate to this workspace in a terminal using ```cd path/to/workspace```
+- Build packages in workspace using ```colcon build```
+- Source workspace package data using ```source install/setup.bash```
+- (optional) Select vehicle to be simulated in the launch file
+- Launch project using ```ros2 launch launch/vehicle_sim_joystick.py```
+- Enjoy
+
 ## Understanding ROS
 
 - **What is ROS?**
@@ -94,7 +105,3 @@ Each part may speak its own "language". ROS helps them all talk to each other sm
 ROS is a essentially a software Lego set for building robotic systems. It provides ready-made tools and libraries to handle common tasks like controlling actuators, processing sensor data, or even communicating with other robots\
 In short, ROS is the software glue that connects all the hardware and software pieces of a robot, making it easier to build, program, and control robots.
 - **Understand the basic tools** ROS2 provides with [Beginner: CLI Tools](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html) section
-
-## Gazebo Simulation
-
-- WIP future

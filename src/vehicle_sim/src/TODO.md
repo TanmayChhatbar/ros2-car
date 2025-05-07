@@ -1,9 +1,6 @@
 # TODO
 
 - simulation
-  - basic visualization
-    - fix odom - base_link frame stuff
-  - visualization with URDF
   - low speed longitudinal chatter
   - traction control
   - ABS
