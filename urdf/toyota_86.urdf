@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-    <robot name="tt02">
-    <!-- simplified tt02 chassis definitions -->
+    <robot name="toyota_86">
+    <!-- simplified toyota_86 chassis definitions -->
     <!-- includes vertical suspension and front steering -->
         <material name="White">
             <color rgba="0.95 0.95 0.95 1"/>
@@ -14,7 +14,7 @@
             <visual>
                 <geometry>
                     <!-- this file is from https://sketchfab.com/3d-models/subaru-brz-321a9ece66bb4616872892c01d279542 -->
-                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_base_link.stl" scale="1 1 1"/>
+                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_base_link.stl" scale="10 10 10"/>
                 </geometry>
                 <material name="White"/>
                 <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -25,7 +25,7 @@
         <link name="wheel_frl">
             <visual>
                 <geometry>
-                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="1 1 1"/>
+                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="10 10 10" />
                 </geometry>
                 <material name="Black"/>
                 <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -52,9 +52,9 @@
         <joint name="base_frl_joint" type="prismatic">
             <parent link="base_link"/>
             <child link="susp_frl"/>
-            <origin xyz="0.129382 0.067852 -0.027459" rpy="0 0 0"/>
+            <origin xyz="1.29382 0.67852 -0.27459" rpy="0 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit effort="0" lower="-0.008" upper="0.008" velocity="0"/>
+            <limit effort="0" lower="-0.08" upper="0.08" velocity="0"/>
         </joint>
         <joint name="frl_steering_joint" type="revolute">
             <parent link="susp_frl"/>
@@ -74,7 +74,7 @@
         <link name="wheel_frr">
             <visual>
                 <geometry>
-                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="1 -1 1"/>
+                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="10 -10 10"/>
                 </geometry>
                 <material name="Black"/>
                 <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -101,9 +101,9 @@
         <joint name="base_frr_joint" type="prismatic">
             <parent link="base_link"/>
             <child link="susp_frr"/>
-            <origin xyz="0.129382 -0.067852 -0.027459" rpy="0 0 0"/>
+            <origin xyz="1.29382 -0.67852 -0.27459" rpy="0 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit effort="0" lower="-0.008" upper="0.008" velocity="0"/>
+            <limit effort="0" lower="-0.08" upper="0.08" velocity="0"/>
         </joint>
         <joint name="frr_steering_joint" type="revolute">
             <parent link="susp_frr"/>
@@ -123,7 +123,7 @@
         <link name="wheel_rrl">
             <visual>
                 <geometry>
-                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl"/>
+                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="10 10 10"/>
                 </geometry>
                 <material name="Black"/>
                 <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -150,9 +150,9 @@
         <joint name="base_rrl_joint" type="prismatic">
             <parent link="base_link"/>
             <child link="susp_rrl"/>
-            <origin xyz="-0.129382 0.067852 -0.027459" rpy="0 0 0"/>
+            <origin xyz="-1.29382 0.67852 -0.27459" rpy="0 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit effort="0" lower="-0.008" upper="0.008" velocity="0"/>
+            <limit effort="0" lower="-0.08" upper="0.08" velocity="0"/>
         </joint>
         <joint name="rrl_steering_joint" type="revolute">
             <parent link="susp_rrl"/>
@@ -172,7 +172,7 @@
         <link name="wheel_rrr">
             <visual>
                 <geometry>
-                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="1 -1 1"/>
+                    <mesh filename="file:///home/tanmay/ros2/ros2_car_ws/meshes/tt02_wheel.stl" scale="10 -10 10"/>
                 </geometry>
                 <material name="Black"/>
                 <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -199,9 +199,9 @@
         <joint name="base_rrr_joint" type="prismatic">
             <parent link="base_link"/>
             <child link="susp_rrr"/>
-            <origin xyz="-0.129382 -0.067852 -0.027459" rpy="0 0 0"/>
+            <origin xyz="-1.29382 -0.67852 -0.27459" rpy="0 0 0"/>
             <axis xyz="0 0 1"/>
-            <limit effort="0" lower="-0.008" upper="0.008" velocity="0"/>
+            <limit effort="0" lower="-0.08" upper="0.08" velocity="0"/>
         </joint>
         <joint name="rrr_steering_joint" type="revolute">
             <parent link="susp_rrr"/>
