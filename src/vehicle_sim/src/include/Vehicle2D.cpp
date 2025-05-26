@@ -294,8 +294,7 @@ void Vehicle2D::calcAerodynamicForces(double (&F)[3], double (&M)[3])
     F[2] = 0.0;
     M[0] = 0.0;
     M[1] = 0.0;
-    M[2] = 0.0;
-    M[3] = -0.5 * config.getCMz() * config.getRho() * config.getFrontalArea() * w_yaw * w_yaw;
+    M[2] = -0.5 * config.getCMz() * config.getRho() * config.getFrontalArea() * w_yaw * w_yaw;
 }
 
 void Vehicle2D::calcNetForcesAndMoments() // update Fx, Fy, Mz
@@ -320,7 +319,7 @@ void Vehicle2D::calcNetForcesAndMoments() // update Fx, Fy, Mz
 
     double Fx = F_aero[0];
     double Fy = F_aero[1];
-    double Mz = M_aero[3];
+    double Mz = M_aero[2];
 
     // resolve forces in vehicle frame for wheels that steer
     for (int i = 0; i < 2; ++i)
