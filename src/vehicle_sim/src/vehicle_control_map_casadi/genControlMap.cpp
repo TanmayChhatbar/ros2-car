@@ -27,14 +27,6 @@ int main()
     }
     writeCSVHeader(output_file);
 
-    // simulation parameters
-    double max_steering_input = 0.1;
-    double dt = 0.0001;      // [s]
-    double tmax = 2000.0;      // [s]
-    double freq_steer = 0.1; // frequency of steering oscillation
-    double t_start = 1;
-    double f_log = 100;      // [hz] log frequency
-
     // initial
     double throttle_input = 0.0; // [-1 to 1]
     double steering_input = 0.0; // [-1 to 1]
@@ -45,8 +37,15 @@ int main()
     {
         for (double vehicle_slip_angle = 0.5; vehicle_slip_angle < 1.5; vehicle_slip_angle += 0.25)
         {
-            // find steady-state throttle and steering input to maintain specific slip angle
-            
+            // find steady-state wheelspeeds and steering angle to maintain specific slip angle and velocity
+            // constraints
+            // - wheel acceleration == 0
+            // - yaw acceleration == 0
+            // inputs
+            // - wheel speeds (x4)
+            //   - assume constant wheel speeds for rear wheels
+            // - steering angle
+
             // find throttle and steering until steady-state control input is found
             find_equilibrium_control_input(vehicle, vx, vehicle_slip_angle, &throttle_input, &steering_input);
             

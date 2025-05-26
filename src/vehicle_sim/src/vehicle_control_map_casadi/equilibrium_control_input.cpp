@@ -24,18 +24,7 @@ void find_equilibrium_control_input(Vehicle2D vehicle, const double vx, const do
     vehicle.calcSteeringAngle();
     vehicle.calcMotorTorque();
     vehicle.calcBrakeTorque();
-    if (config.getDrivetrainType() == RWD)
-    {
-        vehicle.calcTractionTorquesRWD();
-    }
-    else if (config.getDrivetrainType() == FWD)
-    {
-        vehicle.calcTractionTorquesFWD();
-    }
-    else if (config.getDrivetrainType() == AWD)
-    {
-        vehicle.calcTractionTorquesAWD();
-    }
+    vehicle.calcTractionTorques();
     vehicle.calcTireNormalLoads();
     vehicle.calcWheelSlipsAndForces();
     vehicle.calcNetForcesAndMoments();
@@ -48,7 +37,11 @@ void find_equilibrium_control_input(Vehicle2D vehicle, const double vx, const do
     data.getLinearAccelerations(ax, ay);
     data.getAngularAccelerations(a_yaw);
 
-    // condition for equilibrium
-    
-
+    // get front wheel velocity at equilibrium
+    double score = 1.0e10;
+    double v_wheel_eq[4];
+    while (score > 1.0)
+    {
+        
+    }
 }
