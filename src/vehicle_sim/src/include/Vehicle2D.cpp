@@ -87,6 +87,23 @@ void Vehicle2D::calcTractionTorquesRWD()
     data.setWheelTorques(wheel_torques);
 }
 
+void Vehicle2D::calcTractionTorques()
+{
+
+    if (config.getDrivetrainType() == RWD)
+    {
+        calcTractionTorquesRWD();
+    }
+    else if (config.getDrivetrainType() == FWD)
+    {
+        calcTractionTorquesFWD();
+    }
+    else if (config.getDrivetrainType() == AWD)
+    {
+        calcTractionTorquesAWD();
+    }
+}
+
 void Vehicle2D::calcTractionTorquesFWD()
 {
     // get data
@@ -432,18 +449,7 @@ bool Vehicle2D::stepSimulation(double dt, double steering_input, double throttle
     calcSteeringAngle();
     calcMotorTorque();
     calcBrakeTorque();
-    if (config.getDrivetrainType() == RWD)
-    {
-        calcTractionTorquesRWD();
-    }
-    else if (config.getDrivetrainType() == FWD)
-    {
-        calcTractionTorquesFWD();
-    }
-    else if (config.getDrivetrainType() == AWD)
-    {
-        calcTractionTorquesAWD();
-    }
+    calcTractionTorques();
     calcTireNormalLoads();
     calcWheelSlipsAndForces();
     calcNetForcesAndMoments();

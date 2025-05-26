@@ -18,6 +18,7 @@ public:
     void calcMotorTorque();
     void calcBrakeTorque();
     void calcSteeringAngle();
+    void calcTractionTorques();
     void calcTractionTorquesFWD();
     void calcTractionTorquesRWD();
     void calcTractionTorquesAWD();
