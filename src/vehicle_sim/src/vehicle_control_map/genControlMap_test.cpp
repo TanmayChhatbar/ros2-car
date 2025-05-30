@@ -79,10 +79,17 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
     return score;
 }
 
-void stabilizeWheelSpeeds(Vehicle2D &vehicle)
+void stabilizeWheelSpeeds(Vehicle2D &vehicle, double vx_target, double vy_target, double w_yaw_target)
 {
     // stabilize wheel speeds (to solve equilibrium for non-driven wheels)
     Vehicle2DData &data = vehicle.getVehicle2DData();
+
+    double ax = -w_yaw_target * vy_target; // [m/s^2] ax_true = 0 = ax + w_yaw * vy
+    double ay = w_yaw_target * vx_target;  // [m/s^2] ay_true = 0 = ay - w_yaw * vx
+    data.setLinearAccelerations(ax, ay);
+    data.setAngularAccelerations(0.0); // [rad/s^2]
+    data.setLinearVelocities(vx_target, vy_target);
+    data.setAngularVelocities(w_yaw_target);
 
     double max_a_wheel = 10.0;
     while (max_a_wheel > 0.01)
@@ -104,36 +111,6 @@ void stabilizeWheelSpeeds(Vehicle2D &vehicle)
         data.setWheelVelocities(w_wheel);
         max_a_wheel = std::max({std::abs(a_wheel[0]), std::abs(a_wheel[1]), std::abs(a_wheel[2]), std::abs(a_wheel[3])});
     }
-}
-
-int main()
-{
-    // load configurations
-    Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
-    Vehicle2D vehicle = Vehicle2D(config);
-    Vehicle2DData &data = vehicle.getVehicle2DData();
-
-    // optimize throttle to maintain speed
-    double vx_target = 10.0; // [m/s]
-    double vy_target = 0.0; // [m/s]
-    // double r_turn = 0.5;                                  // [m]
-    // double w_yaw_target = std::sqrt(vx_target * vx_target + vy_target * vy_target) / r_turn; // [rad/s]
-    double w_yaw_target = 0.0; // [rad/s]
-    // ax_true = 0 = ax + w_yaw * vy; // actual rate of change of vx
-    // ay_true = 0 = ay - w_yaw * vx; // actual rate of change of vy
-    // ax = -w_yaw * vy;
-    // ay = w_yaw * vx;
-    double ax = -w_yaw_target * vy_target; // [m/s^2]
-    double ay = w_yaw_target * vx_target;  // [m/s^2]
-    data.setLinearAccelerations(ax, ay);
-    data.setAngularAccelerations(0.0); // [rad/s^2]
-    data.setLinearVelocities(vx_target, vy_target);
-    data.setAngularVelocities(w_yaw_target);
-
-    // stabilize wheel speeds (useful to solve equilibrium for non-driven wheels)
-    stabilizeWheelSpeeds(vehicle);
-
-    // get wheel speeds when free-rolling
     double w_wheel_eq[4];
     data.getWheelVelocities(w_wheel_eq);
     std::cout << "free-rolling wheel speeds:\n\t"
@@ -141,13 +118,24 @@ int main()
               << w_wheel_eq[1] << "\n\t"
               << w_wheel_eq[2] << "\t"
               << w_wheel_eq[3] << std::endl;
+}
+
+bool optimize(Vehicle2D &vehicle, double vx_target, double vy_target, double w_yaw_target)
+{
+    stabilizeWheelSpeeds(vehicle, vx_target, vy_target, w_yaw_target);
+
+    Vehicle2DData &data = vehicle.getVehicle2DData();
+
+    // get wheel speeds when free-rolling
+    double w_wheel_eq[4];
+    data.getWheelVelocities(w_wheel_eq);
 
     // write data that wont change
-    data.setLinearVelocities(vx_target, 0.0);
-    data.setAngularVelocities(0.0);
-    const double a_wheel_zero[4] = {0.0};
-    data.setWheelAccelerations(a_wheel_zero);
-    data.setLinearAccelerations(0.0, 0.0);
+    double ax = -w_yaw_target * vy_target; // [m/s^2] ax_true = 0 = ax + w_yaw * vy
+    double ay = w_yaw_target * vx_target;  // [m/s^2] ay_true = 0 = ay - w_yaw * vx
+    data.setLinearVelocities(vx_target, vy_target);
+    data.setAngularVelocities(w_yaw_target);
+    data.setLinearAccelerations(ax, ay);
     data.setAngularAccelerations(0.0);
 
     // optimization
@@ -169,15 +157,40 @@ int main()
     catch (std::exception &e)
     {
         std::cout << "nlopt failed: " << e.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+int main()
+{
+    // load configurations
+    Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
+    Vehicle2D vehicle = Vehicle2D(config);
+    Vehicle2DData &data = vehicle.getVehicle2DData();
+
+    // optimize throttle to maintain speed
+    double vx_target = 5.0;   // [m/s]
+    double vy_target = 0.0;    // [m/s]
+    double w_yaw_target = 0.0; // [rad/s]
+
+    // stabilize wheel speeds (useful to solve equilibrium for non-driven wheels)
+    if (optimize(vehicle, vx_target, vy_target, w_yaw_target))
+    {
+        // get optimal values
+        double optimalWheelSpeeds[4];
+        data.getWheelVelocities(optimalWheelSpeeds);
+        double optimalSteeringAngle = data.getSteeringAngle();
+
+        std::cout << "optimal wheel speeds:\n\t"
+                  << optimalWheelSpeeds[0] << "\t"
+                  << optimalWheelSpeeds[1] << "\n\t"
+                  << optimalWheelSpeeds[2] << "\t"
+                  << optimalWheelSpeeds[3] << std::endl;
+        std::cout << "optimal steering angle: " << optimalSteeringAngle * 180.0 / M_PI << " [deg]\n";
     }
 
     // print wheel speeds
-    std::cout << "optimal wheel speeds:\n\t"
-              << w_wheel_eq[0] << "\t"
-              << w_wheel_eq[1] << "\n\t"
-              << x[0] << "\t"
-              << x[0] << std::endl;
-    std::cout << "optimal steering angle: " << x[1] * 180.0 / M_PI << " [deg]\n";
 
     // get traction torques
 
