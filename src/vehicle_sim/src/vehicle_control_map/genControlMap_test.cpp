@@ -52,7 +52,7 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
         return 1e6;
     }
     data.setWheelVelocities(w_wheel);
-    // data.setSteeringAngle(u[1]);
+    data.setSteeringAngle(x[1]);
 
     // calculate and get accelerations
     vehicle.calcTireNormalLoads();
@@ -141,8 +141,8 @@ bool optimize(Vehicle2D &vehicle, double vx_target, double vy_target, double w_y
     // optimization
     nlopt::opt opt(nlopt::GN_DIRECT_L, 2);
     opt.set_min_objective(cost_function, &vehicle);
-    std::vector<double> lb = {0.0, DEG2RAD(0.0)};                             // lower bounds for [rear wheel speed, steering angle]
-    std::vector<double> ub = {(w_wheel_eq[2] + w_wheel_eq[3]), DEG2RAD(0.0)}; // upper bounds for [rear wheel speed, steering angle]
+    std::vector<double> lb = {0.0, DEG2RAD(-50.0)};                             // lower bounds for [rear wheel speed, steering angle]
+    std::vector<double> ub = {(w_wheel_eq[2] + w_wheel_eq[3]), DEG2RAD(50.0)}; // upper bounds for [rear wheel speed, steering angle]
     opt.set_lower_bounds(lb);
     opt.set_upper_bounds(ub);
     opt.set_xtol_rel(1e-5);
@@ -170,9 +170,9 @@ int main()
     Vehicle2DData &data = vehicle.getVehicle2DData();
 
     // optimize throttle to maintain speed
-    double vx_target = 5.0;   // [m/s]
-    double vy_target = 0.0;    // [m/s]
-    double w_yaw_target = 0.0; // [rad/s]
+    double vx_target = 1.0;   // [m/s]
+    double vy_target = 0.4;    // [m/s]
+    double w_yaw_target = 0.5; // [rad/s]
 
     // stabilize wheel speeds (useful to solve equilibrium for non-driven wheels)
     if (optimize(vehicle, vx_target, vy_target, w_yaw_target))
