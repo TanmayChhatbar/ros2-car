@@ -115,6 +115,9 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
     double ay_true = ay_calc - w_yaw_target * vx_target; // actual rate of change of vy
 
     double score = ax_true * ax_true + ay_true * ay_true + a_yaw_calc * a_yaw_calc;
+    std::cout << ax_true << "\t"
+              << ay_true << "\t"
+              << a_yaw_calc << "\n";
     (void)grad; // unused
     return score;
 }
@@ -133,14 +136,14 @@ bool optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     std::vector<double> lb = {
         wheel_speed_at_vx,
         DEG2RAD(-40.0),
-        0.0};
+        -1.0};
     std::vector<double> ub = {
         wheel_speed_at_vx * 5.0,
         DEG2RAD(40.0),
         1.0};
     opt.set_lower_bounds(lb);
     opt.set_upper_bounds(ub);
-    opt.set_xtol_rel(1e-5);
+    // opt.set_xtol_rel(1e-5);
     opt.set_ftol_abs(1e-5);
     opt.set_stopval(1e-6);
     std::vector<double> x = {wheel_speed_at_vx, 0.0, 0.0};
@@ -170,7 +173,7 @@ int main()
 
     // optimize throttle to maintain speed
     double vx_target = 1.0; // [m/s]
-    double vy_target = 0.4; // [m/s]
+    double vy_target = 0.5; // [m/s]
     double v = std::sqrt(vx_target * vx_target + vy_target * vy_target);
     std::cout << "target speed: " << v << " [m/s]\n";
     std::cout << "approx wheel speed: " << vx_target / config.getWheelRadius() << " [rad/s]\n";
