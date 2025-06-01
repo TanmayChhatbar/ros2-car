@@ -385,6 +385,24 @@ void Vehicle2D::calcWheelAccelerations()
     {
         a_wheel[i] = (wheel_torques[i] - Fx_wheel[i] * wheel_radius) / I_wheel;
     }
+
+    DifferentialType_E differential_type = config.getDifferentialType();
+    if (differential_type == DIFF_LOCKED)
+    {
+        DrivetrainType_E drivetrain_type = config.getDrivetrainType();
+        if (drivetrain_type == RWD || drivetrain_type == AWD)
+        {
+            double a_wheel_rear = (a_wheel[2] + a_wheel[3]) / 2.0;
+            a_wheel[2] = a_wheel_rear;
+            a_wheel[3] = a_wheel_rear;
+        }
+        if (drivetrain_type == FWD || drivetrain_type == AWD)
+        {
+            double a_wheel_front = (a_wheel[0] + a_wheel[1]) / 2.0;
+            a_wheel[0] = a_wheel_front;
+            a_wheel[1] = a_wheel_front;
+        }
+    }
     data.setWheelAccelerations(a_wheel);
 }
 

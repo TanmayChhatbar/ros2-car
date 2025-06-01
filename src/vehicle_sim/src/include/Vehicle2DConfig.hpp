@@ -11,6 +11,12 @@ enum DrivetrainType_E
     FWD = 2
 };
 
+enum DifferentialType_E
+{
+    DIFF_OPEN = 0,
+    DIFF_LOCKED = 1
+};
+
 class Vehicle2DConfig // vehicle parameter configuration
 {
 public:
@@ -20,7 +26,9 @@ public:
                     double z_cg_, double a_, double r_wheel_, double I_wheel_,
                     double Tmax_, double Tzero_, double Tnegmax_, double Pmax_, double Pnegmax_, double gear_ratio_,
                     double brake_Tmax_, double brake_bias_,
-                    DrivetrainType_E drivetrain_type_, double diff_damping_, TireConfig tire_config_,
+                    DrivetrainType_E drivetrain_type_, 
+                    DifferentialType_E differential_type_, double diff_damping_,
+                    TireConfig tire_config_,
                     double CDx_, double CMz_, double Af_, double rho_);
 
     static Vehicle2DConfig loadFromFile(const std::string &filename);
@@ -41,6 +49,7 @@ public:
     double getBrakeTmax() const;
     double getBrakeBias() const;
     DrivetrainType_E getDrivetrainType() const;
+    DifferentialType_E getDifferentialType() const;
     double getDiffDamping() const;
     double getI_wheel() const;
     double getGearRatio() const;
@@ -69,6 +78,7 @@ private:
     double brake_Tmax;
     double brake_bias;
     DrivetrainType_E drivetrain_type;
+    DifferentialType_E differential_type;
     double diff_damping;
     TireConfig tire_config;
     double CDx;

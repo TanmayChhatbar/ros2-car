@@ -18,6 +18,7 @@
   "brake_Tmax": 0.0,
   "brake_bias": 0.5,
   "drivetrain_type": 0,
+  "differential_type": 0,
   "diff_damping": 0.01,
   "CDx": 0.3,
   "CMz": 0.0,
