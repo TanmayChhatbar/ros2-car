@@ -11,6 +11,14 @@ void CSVWriter::write(const std::vector<std::string> &array)
     file << std::endl;
 }
 
+void CSVWriter::write(const std::vector<std::vector<std::string>> &array)
+{
+    for (size_t i = 0; i < array.size(); i++)
+    {
+        write(array[i]);
+    }
+}
+
 void CSVWriter::write(const std::vector<double> &array)
 {
     for (size_t i = 0; i < array.size(); i++)
@@ -20,6 +28,14 @@ void CSVWriter::write(const std::vector<double> &array)
             file << ",";
     }
     file << std::endl;
+}
+
+void CSVWriter::write(const std::vector<std::vector<double>> &array)
+{
+    for (size_t i = 0; i < array.size(); i++)
+    {
+        write(array[i]);
+    }
 }
 
 CSVWriter::CSVWriter(std::string filename)
