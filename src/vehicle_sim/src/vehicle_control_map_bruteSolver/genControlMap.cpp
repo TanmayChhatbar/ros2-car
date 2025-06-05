@@ -1,0 +1,116 @@
+#include "genControlMap.hpp"
+
+void writeEverythingToCSV(const std::string &filename, const std::vector<std::vector<std::string>> &data)
+{
+    CSVWriter csv_writer = CSVWriter(filename);
+    csv_writer.write(data);
+    csv_writer.close();
+}
+
+int main()
+{
+    // param for refinement
+    std::string filename = "control_map.csv";
+    double score_threshold = 1.0; // threshold for score to refine
+
+    // load configurations
+    Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
+    Vehicle2D vehicle = Vehicle2D(config);
+    Vehicle2DData &data = vehicle.getVehicle2DData();
+
+    // optimize throttle to maintain speed
+    std::vector<std::vector<double>> values = {
+        {0.25, 0.25, 10.0}, // vx
+        {0.0, 0.1, 2.01},   // vy / vx
+    };
+
+    // get existing data
+    CSVReader reader(filename);
+    std::vector<std::vector<std::string>> csv_data;
+    if (!reader.read(csv_data))
+    {
+        std::cout << "CSV file not found or empty, creating new file\n";
+        CSVWriter csv_writer = CSVWriter(filename);
+        csv_data.push_back({"vx_target [m/s]",
+                          "vy_target [m/s]",
+                          "opt_score [-]",
+                          "opt_wheelspeed [rad/s]",
+                          "opt_steering_angle [rad]",
+                          "opt_yawrate [rad/s]"});
+        
+        std::vector<std::vector<double>> values = {
+            {0.25, 0.25, 10.0}, // vx
+            {0.0, 0.1, 2.01},   // vy / vx
+        };
+        std::vector<std::vector<double>> trial_points = combinations(values);
+        for (uint i = 0; i < trial_points.size(); ++i)
+        {
+            double vx_target = trial_points[i][0];
+            double vy_target = trial_points[i][1] * vx_target;
+            csv_data.push_back({std::to_string(vx_target),
+                                std::to_string(vy_target / vx_target),
+                                "1.0e5", // initial score
+                                "0.0",   // wheel speed
+                                "0.0",   // steering angle
+                                "0.0"}); // yaw rate
+        }
+        writeEverythingToCSV(filename, csv_data);
+    }
+
+    uint n_points = csv_data.size();
+    for (uint i = 0; i < n_points; ++i)
+    {
+        double previous_score = 1.0e5;
+        try
+        {
+            previous_score = std::stod(csv_data[i][2]);
+        }
+        catch (const std::invalid_argument &)
+        {
+            std::cout << i+1 << "/" << n_points << ": Invalid line (" << csv_data[i][2] << ")\n";
+            continue;
+        }
+        if (previous_score < score_threshold)
+        {
+            std::cout << i+1 << "/" << n_points << ": Score below threshold (" << previous_score << ")\n";
+            continue;
+        }
+        std::cout << i+1 << "/" << n_points << ": " << std::flush;
+        double vx_target = std::stod(csv_data[i][0]);
+        double vy_target = std::stod(csv_data[i][1]) * vx_target;
+
+        double opt_wheel_speed;
+        double opt_steering_angle = data.getSteeringAngle();
+        double opt_yaw_rate;
+        double opt_score = optimize(vehicle, vx_target, vy_target);
+        double opt_wheel_speeds_tmp[4];
+        data.getWheelVelocities(opt_wheel_speeds_tmp);
+        opt_wheel_speed = opt_wheel_speeds_tmp[2];
+        data.getAngularVelocities(opt_yaw_rate);
+
+        if (opt_score < previous_score)
+        {
+            csv_data[i][0] = std::to_string(vx_target);
+            csv_data[i][1] = std::to_string(vy_target / vx_target);
+            csv_data[i][2] = std::to_string(opt_score);
+            csv_data[i][3] = std::to_string(opt_wheel_speed);
+            csv_data[i][4] = std::to_string(opt_steering_angle);
+            csv_data[i][5] = std::to_string(opt_yaw_rate);
+            std::cout << "Updated score (" << opt_score << " --> " << previous_score << ")\n";
+            writeEverythingToCSV(filename, csv_data);
+        }
+        else
+        {
+            std::cout << "No update (" << opt_score << " > " << previous_score << ")\n";
+        }
+    }
+    return 0;
+
+    // print wheel speeds
+
+    // get traction torques
+
+    // calculate motor torque
+
+    // calculate throttle input command
+}

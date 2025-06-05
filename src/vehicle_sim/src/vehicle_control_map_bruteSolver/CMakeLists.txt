@@ -34,18 +34,19 @@ set(SOLVER_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 include_directories(
     ${CMAKE_SOURCE_DIR}/include)
 
-add_executable(genControlMap_test 
-    genControlMap_test.cpp
+add_executable(genControlMap
+    genControlMap.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/Vehicle2D.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/Vehicle2DConfig.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/Vehicle2DData.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/VehicleInput.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/TireConfig.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/CSVWriter.cpp
+    ${VEHICLE_SIM_INCLUDE_DIR}/CSVReader.cpp
     ${SOLVER_INCLUDE_DIR}/BruteSolver.cpp
 )
 include_directories(${VEHICLE_SIM_INCLUDE_DIR})
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(genControlMap_test PRIVATE OpenMP::OpenMP_CXX)
-    target_compile_options(genControlMap_test PRIVATE ${OpenMP_CXX_FLAGS})
+    target_link_libraries(genControlMap PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_options(genControlMap PRIVATE ${OpenMP_CXX_FLAGS})
 endif()
