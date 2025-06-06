@@ -44,7 +44,7 @@ void stabilizeWheelSpeeds(Vehicle2D &vehicle)
     {
         w_wheel[i] = vxw[i] / r_wheel;
     }
-        
+
     // set data
     const double wheel_torques[4] = {0.0, 0.0, 0.0, 0.0};
     data.setWheelTorques(wheel_torques);
@@ -213,20 +213,24 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     Vehicle2DData &data = vehicle.getVehicle2DData();
     Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
 
+    double max_yaw_rate = 5.0; // [rad/s] maximum yaw rate
+    double vx_front_target = vx_target;
+    double vy_front_target = vy_target + max_yaw_rate * config.getA();
+    double max_kinematic_steering_angle = std::atan2(vy_front_target, vx_front_target);
+    double min_kinematic_steering_angle = std::atan2(vy_target, vx_target);
+
     data.setLinearVelocities(vx_target, vy_target);
     double wheel_speed_at_vx = vx_target / config.getWheelRadius();
     std::vector<double> lb = {
-        wheel_speed_at_vx, // [rad/s] wheel speed
-        DEG2RAD(-50.0),    // [rad] steering angle
-        -5.0};             // [rad/s] yaw rate
+        wheel_speed_at_vx,                            // [rad/s] wheel speed
+        min_kinematic_steering_angle - DEG2RAD(15.0), // [rad] steering angle
+        -max_yaw_rate};                               // [rad/s] yaw rate
     std::vector<double> ub = {
         wheel_speed_at_vx * 6.0,
-        DEG2RAD(50.0),
+        max_kinematic_steering_angle + DEG2RAD(15.0),
         0.0};
     std::vector<uint> n_trials = {
-        80, 80, 80
-    };
-
+        80, 80, 80};
 
     // set up solver
     auto f = [&vehicle](const std::vector<double> &x)

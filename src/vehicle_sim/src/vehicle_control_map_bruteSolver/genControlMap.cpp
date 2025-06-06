@@ -11,7 +11,7 @@ int main()
 {
     // param for refinement
     std::string filename = "control_map.csv";
-    double score_threshold = 1.0; // threshold for score to refine
+    double score_threshold = 0.1; // threshold for score to refine
 
     // load configurations
     Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
