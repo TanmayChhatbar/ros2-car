@@ -61,16 +61,22 @@ int main()
     for (uint i = 0; i < n_points; ++i)
     {
         double previous_score = 1.0e5;
+        double previous_steering_angle = 0.0;
+        // double previous_yaw_rate = 0.0;
         try
         {
             previous_score = std::stod(csv_data[i][2]);
+            previous_steering_angle = std::stod(csv_data[i][4]);
+            // previous_yaw_rate = std::stod(csv_data[i][5]);
         }
         catch (const std::invalid_argument &)
         {
             std::cout << i+1 << "/" << n_points << ": Invalid line (" << csv_data[i][2] << ")\n";
             continue;
         }
-        if (previous_score < score_threshold)
+        // condition to skip refinement
+        if ( // previous_score < score_threshold &&
+            std::fabs(previous_steering_angle) < 1.0)
         {
             std::cout << i+1 << "/" << n_points << ": Score below threshold (" << previous_score << ")\n";
             continue;
@@ -88,7 +94,8 @@ int main()
         opt_wheel_speed = opt_wheel_speeds_tmp[2];
         data.getAngularVelocities(opt_yaw_rate);
 
-        if (opt_score < previous_score)
+        // if (opt_score < previous_score)
+        if (fabsf(previous_steering_angle) > 1.0)
         {
             csv_data[i][0] = std::to_string(vx_target);
             csv_data[i][1] = std::to_string(vy_target / vx_target);
