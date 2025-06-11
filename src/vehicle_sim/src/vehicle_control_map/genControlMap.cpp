@@ -18,7 +18,15 @@ int main()
     double wheel_speed_ratio_threshold = 5.8 / config.getWheelRadius(); // [(rad/s)/(m/s)]
 
     // get existing data
-    std::string filename = "../../control_map_nlopt.csv";
+#if USE_NLOPT
+    std::cout << "Using NLOPT\n";
+#elif USE_BRUTESOLVER
+    std::cout << "Using bruteSolver\n";
+#else
+    std::cerr << "Error: No optimization method defined!.\n";
+    return 1;
+#endif
+    const std::string filename = "../../control_map.csv";
     CSVReader reader(filename);
     std::vector<std::vector<std::string>> csv_data;
     if (!reader.read(csv_data))
@@ -49,6 +57,24 @@ int main()
                                 "1.0e5"}); // yaw rate
         }
         writeEverythingToCSV(filename, csv_data);
+    }
+    else
+    {
+        // backup existing data
+        std::string backup_filename = filename + "_1.bak";
+        uint backup_i = 0;
+        while (true)
+        {
+            backup_i++;
+            backup_filename.replace(backup_filename.size() - 6, 6, "_" + std::to_string(backup_i) + ".bak");
+            std::ifstream bf(backup_filename);
+            if (!bf.good())
+            {
+                std::cout << "Creating backup file: " << backup_filename << "\n";
+                break; // file does not exist, we can create a backup
+            }
+        }
+        writeEverythingToCSV(backup_filename, csv_data);
     }
 
     uint n_points = csv_data.size();
@@ -95,7 +121,7 @@ int main()
             }
             iskip = 0;
         }
-        std::cout << "      " << i + 1 << " / " << n_points << ":\t" << std::flush;
+        std::cout << "     " << std::setw(3) << i + 1 << " / " << n_points << ":\t" << std::flush;
 
         double opt_wheel_speed;
         double opt_steering_angle = data.getSteeringAngle();

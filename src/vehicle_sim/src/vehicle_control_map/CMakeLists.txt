@@ -8,6 +8,7 @@ SET(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,${CMAKE_SOURCE_DIR}/build")
 
 find_package(Threads REQUIRED)
+find_package(OpenMP REQUIRED)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
@@ -27,6 +28,7 @@ if(CMAKE_CXX_COMPILER_LOADED)
 endif()
 
 set(VEHICLE_SIM_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../include)
+set(SOLVER_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
 # include header directories
 include_directories(
@@ -41,6 +43,11 @@ add_executable(genControlMap
     ${VEHICLE_SIM_INCLUDE_DIR}/TireConfig.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/CSVWriter.cpp
     ${VEHICLE_SIM_INCLUDE_DIR}/CSVReader.cpp
+    ${SOLVER_INCLUDE_DIR}/BruteSolver.cpp
 )
 include_directories(${VEHICLE_SIM_INCLUDE_DIR})
 target_link_libraries(genControlMap PRIVATE nlopt)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(genControlMap PRIVATE OpenMP::OpenMP_CXX)
+    target_compile_options(genControlMap PRIVATE ${OpenMP_CXX_FLAGS})
+endif()

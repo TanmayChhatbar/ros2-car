@@ -1,16 +1,31 @@
 #include "Vehicle2D.hpp"
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
-#include <iomanip>
+#include "BruteSolver.hpp"
+#include <chrono>
+#include <nlopt.hpp>
 #include "CSVWriter.hpp"
 #include "CSVReader.hpp"
-#include <nlopt.hpp>
 
 #define DEBUG_STABILIZEWHEELSPEEDS 0
 #define DEBUG_OPTIMIZATION 0
+
+#define USE_NLOPT 1
+#define USE_BRUTESOLVER (1 && !USE_NLOPT)
+
+#if USE_NLOPT
 // #define NLOPT_SOLVER GN_ISRES
-#define NLOPT_SOLVER GN_DIRECT_L_RAND
+#define NLOPT_SOLVER GN_DIRECT_L_RAND    // works very well
+// #define NLOPT_SOLVER GN_ORIG_DIRECT       //
+// #define NLOPT_SOLVER GN_DIRECT_NOSCAL    // doesnt work very well
+// #define NLOPT_SOLVER GN_CRS2_LM
+// #define NLOPT_SOLVER GN_MLSL             // segmentation fault
+// #define NLOPT_SOLVER GN_MLSL_LDS         // segmentation fault
+// #define NLOPT_SOLVER GN_AGS              // doesnt work at all
+// #define NLOPT_SOLVER GN_ESCH             // works okay
+#endif
 
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 
@@ -231,20 +246,24 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     double wheel_speed_at_vx = vx_target / config.getWheelRadius();
 
     // optimization
-    nlopt::opt opt(nlopt::NLOPT_SOLVER, 3);
-    opt.set_min_objective(cost_function, &vehicle);
     std::vector<double> lb = {
         wheel_speed_at_vx, // [rad/s] wheel speed
+        // min_kinematic_steering_angle - DEG2RAD(15.0), // [rad] steering angle
         DEG2RAD(-30.0),    // [rad] steering angle
         -max_yaw_rate};    // [rad/s] yaw rate
     std::vector<double> ub = {
         wheel_speed_at_vx * 6.0,
+        // max_kinematic_steering_angle + DEG2RAD(15.0),
         DEG2RAD(70.0),
         0.0};
     if (vy_target == 0.0)
     {
         ub[1] = 0.0;
     }
+
+#if USE_NLOPT
+    nlopt::opt opt(nlopt::NLOPT_SOLVER, 3);
+    opt.set_min_objective(cost_function, &vehicle);
     opt.set_lower_bounds(lb);
     opt.set_upper_bounds(ub);
     opt.set_xtol_rel(1e-16);
@@ -262,7 +281,39 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     catch (std::exception &e)
     {
         std::cout << "nlopt failed: " << e.what() << std::endl;
-        return score;
     }
+#elif USE_BRUTESOLVER
+    std::vector<uint> n_trials = {
+        80, 80, 80};
+
+    // set up solver
+    auto f = [&vehicle](const std::vector<double> &x)
+    {
+        std::vector<double> grad; // not used
+        Vehicle2D vehicle_copy = vehicle;
+        return cost_function(x, grad, &vehicle_copy);
+    };
+    BruteSolver solver(f);
+    solver.setBounds(lb, ub);
+    solver.setNTrials(n_trials);
+    solver.setNRefinements(50);
+    solver.setCostThreshold(1.0e-5);
+    solver.setReductionRatio(0.75);
+    solver.printOutput(false);
+
+    // optimize
+    double score = 1.0e5;
+    if (solver.solve())
+    {
+        score = solver.getScore();
+        std::vector<double> opt_trial_point = solver.getSolution();
+        double w_wheel[4];
+        w_wheel[2] = opt_trial_point[0]; // rear wheel speed
+        w_wheel[3] = opt_trial_point[0]; // rear wheel speed
+        data.setWheelVelocities(w_wheel);
+        data.setSteeringAngle(opt_trial_point[1]);
+        data.setAngularVelocities(opt_trial_point[2]);
+    }
+#endif
     return score;
 }
