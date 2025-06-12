@@ -4,12 +4,10 @@ int main()
 {
     // load configurations
     Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
-    Vehicle2D vehicle = Vehicle2D(config);
-    Vehicle2DData &data = vehicle.getVehicle2DData();
 
     // params for refinement
     bool refine_for_score = true;
-    double score_threshold = 0.1; // [-]
+    double score_threshold = 0.01; // [-]
 
     bool refine_for_steering_angle = false;
     double steering_angle_threshold = 1.0; // [rad]
@@ -63,10 +61,15 @@ int main()
         // backup existing data
         std::string backup_filename = filename + "_1.bak";
         uint backup_i = 0;
+        uint len_i = 0;
         while (true)
         {
             backup_i++;
-            backup_filename.replace(backup_filename.size() - 6, 6, "_" + std::to_string(backup_i) + ".bak");
+            if (backup_i > 10)
+            {
+                len_i = 1;
+            }
+            backup_filename.replace(backup_filename.size() - (6+len_i), (6+len_i), "_" + std::to_string(backup_i) + ".bak");
             std::ifstream bf(backup_filename);
             if (!bf.good())
             {
@@ -78,9 +81,14 @@ int main()
     }
 
     uint n_points = csv_data.size();
-    uint iskip = 0;
+
+#if USE_NLOPT
+#pragma omp parallel for
+#endif
     for (uint i = 0; i < n_points; ++i)
     {
+        Vehicle2D vehicle = Vehicle2D(config);
+        Vehicle2DData &data = vehicle.getVehicle2DData();
         double vx_target = 0.0;
         double vy_target = 0.0;
         double previous_score = 1.0e5;
@@ -98,7 +106,10 @@ int main()
         }
         catch (const std::invalid_argument &)
         {
-            std::cout << std::setw(3) << i + 1 << "      / " << n_points << ": Invalid line (" << csv_data[i][2] << ")\n";
+#pragma omp critical
+            {
+                std::cout << std::setw(3) << i + 1 << " / " << n_points << ":\tInvalid line (" << csv_data[i][2] << ")\n";
+            }
             continue;
         }
         // condition to skip refinement
@@ -106,23 +117,12 @@ int main()
             ((std::fabs(previous_steering_angle) < steering_angle_threshold) || !refine_for_steering_angle) &&
             ((std::fabs(previous_wheel_speed) < wheel_speed_ratio_threshold * vx_target) || !refine_for_wheel_speed))
         {
-            iskip++;
+#pragma omp critical
+            {
+                std::cout << std::setw(3) << i + 1 << " / " << n_points << ":\tNo need to optimize (" << previous_score << ")\n";
+            }
             continue;
         }
-        else
-        {
-            if (iskip == 1)
-            {
-               std::cout << "     " << std::setw(3) << i << " / " << n_points << ":\tNo need to optimize\n";
-            }
-            else if (iskip > 1)
-            {
-               std::cout << std::setw(3) << i - iskip + 1 << " -" << std::setw(3) << i << " / " << n_points << ":\tNo need to optimize\n";
-            }
-            iskip = 0;
-        }
-        std::cout << "     " << std::setw(3) << i + 1 << " / " << n_points << ":\t" << std::flush;
-
         double opt_wheel_speed;
         double opt_steering_angle = data.getSteeringAngle();
         double opt_yaw_rate;
@@ -133,27 +133,30 @@ int main()
         data.getAngularVelocities(opt_yaw_rate);
 
         (void)previous_yaw_rate;
-        if ((previous_score > opt_score && refine_for_score) ||
-            (fabsf(previous_steering_angle) > steering_angle_threshold && refine_for_steering_angle) ||
-            (fabsf(previous_wheel_speed) > wheel_speed_ratio_threshold * vx_target && refine_for_wheel_speed))
+#pragma omp critical
         {
-            csv_data[i][0] = std::to_string(vx_target);
-            csv_data[i][1] = std::to_string(vy_target / vx_target);
-            csv_data[i][2] = std::to_string(opt_score);
-            csv_data[i][3] = std::to_string(opt_wheel_speed);
-            csv_data[i][4] = std::to_string(opt_steering_angle);
-            csv_data[i][5] = std::to_string(opt_yaw_rate);
-            std::cout << "Updated score (" << opt_score << " --> " << previous_score << ")\n";
-            writeEverythingToCSV(filename, csv_data);
-        }
-        else
-        {
-            std::cout << "No update (" << opt_score << " > " << previous_score << ")\n";
+            if ((previous_score > opt_score && refine_for_score) ||
+                (fabsf(previous_steering_angle) > steering_angle_threshold && refine_for_steering_angle) ||
+                (fabsf(previous_wheel_speed) > wheel_speed_ratio_threshold * vx_target && refine_for_wheel_speed))
+            {
+                csv_data[i][0] = std::to_string(vx_target);
+                csv_data[i][1] = std::to_string(vy_target / vx_target);
+                csv_data[i][2] = std::to_string(opt_score);
+                csv_data[i][3] = std::to_string(opt_wheel_speed);
+                csv_data[i][4] = std::to_string(opt_steering_angle);
+                csv_data[i][5] = std::to_string(opt_yaw_rate);
+                std::cout << std::setw(3) << i + 1 << " / " << n_points << ":\t"
+                          << "Updated score (" << opt_score << " --> " << previous_score << ")\n";
+                writeEverythingToCSV(filename, csv_data);
+            }
+            else
+            {
+                std::cout << std::setw(3) << i + 1 << " / " << n_points << ":\t"
+                          << "No update (" << opt_score << " > " << previous_score << ")\n";
+            }
         }
     }
     return 0;
-
-    // print wheel speeds
 
     // get traction torques
 

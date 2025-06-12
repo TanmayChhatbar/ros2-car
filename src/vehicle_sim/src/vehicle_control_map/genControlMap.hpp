@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-#include "BruteSolver.hpp"
+#include "include/BruteSolver.hpp"
 #include <chrono>
 #include <nlopt.hpp>
 #include "CSVWriter.hpp"
@@ -12,18 +12,18 @@
 #define DEBUG_STABILIZEWHEELSPEEDS 0
 #define DEBUG_OPTIMIZATION 0
 
-#define USE_NLOPT 1
+#define USE_NLOPT 0
 #define USE_BRUTESOLVER (1 && !USE_NLOPT)
 
 #if USE_NLOPT
 // #define NLOPT_SOLVER GN_ISRES
 #define NLOPT_SOLVER GN_DIRECT_L_RAND    // works very well
-// #define NLOPT_SOLVER GN_ORIG_DIRECT       //
-// #define NLOPT_SOLVER GN_DIRECT_NOSCAL    // doesnt work very well
+// #define NLOPT_SOLVER GN_ORIG_DIRECT      //
+// #define NLOPT_SOLVER GN_DIRECT_NOSCAL    // doesn't work very well
 // #define NLOPT_SOLVER GN_CRS2_LM
 // #define NLOPT_SOLVER GN_MLSL             // segmentation fault
 // #define NLOPT_SOLVER GN_MLSL_LDS         // segmentation fault
-// #define NLOPT_SOLVER GN_AGS              // doesnt work at all
+// #define NLOPT_SOLVER GN_AGS              // doesn't work at all
 // #define NLOPT_SOLVER GN_ESCH             // works okay
 #endif
 
@@ -252,7 +252,7 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
         DEG2RAD(-30.0),    // [rad] steering angle
         -max_yaw_rate};    // [rad/s] yaw rate
     std::vector<double> ub = {
-        wheel_speed_at_vx * 6.0,
+        wheel_speed_at_vx * 10.0,
         // max_kinematic_steering_angle + DEG2RAD(15.0),
         DEG2RAD(70.0),
         0.0};
@@ -268,7 +268,7 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     opt.set_upper_bounds(ub);
     opt.set_xtol_rel(1e-16);
     opt.set_ftol_abs(1e-16);
-    opt.set_stopval(1e-1);
+    opt.set_stopval(1e-2);
     opt.set_maxtime(15.0);
     std::vector<double> x = {wheel_speed_at_vx, 0.0, 0.0};
     double score = 1.0e5;
