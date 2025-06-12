@@ -34,10 +34,6 @@ bool CSVReader::read(std::vector<std::vector<std::string>> &array)
 CSVReader::CSVReader(std::string filename)
 {
     file = std::ifstream(filename);
-    if (!file.is_open())
-    {
-        throw std::runtime_error("Failed to open file: " + filename);
-    }
 }
 
 void CSVReader::close()
