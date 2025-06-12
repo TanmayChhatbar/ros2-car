@@ -1,7 +1,7 @@
 clear
 clc
 
-filename = "../src/control_map_nlopt.csv";
+filename = "../src/control_map.csv";
 t = csvread(filename);
 
 % get data from table
@@ -44,7 +44,7 @@ ylabel('v_y/v_x [-]');
 % title('Wheel speeds vs v_x, v_y');
 
 subplot(223);
-surf(vx_targets, vyvx_ratios, steering_angles);
+surf(vx_targets, vyvx_ratios, rad2deg(steering_angles));
 xlabel('v_x [m/s]');
 ylabel('v_y/v_x [-]');
 zlabel('Steering angle [rad]');
