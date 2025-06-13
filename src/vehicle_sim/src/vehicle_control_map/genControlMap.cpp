@@ -3,17 +3,17 @@
 int main()
 {
     // load configurations
-    Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
+    const Vehicle2DConfig config = Vehicle2DConfig::loadFromFile("../../configs/tt02.json");
 
     // params for refinement
-    bool refine_for_score = true;
-    double score_threshold = 0.01; // [-]
+    const bool refine_for_score = true;
+    const double score_threshold = 0.01; // [-]
 
-    bool refine_for_steering_angle = false;
-    double steering_angle_threshold = 1.0; // [rad]
+    const bool refine_for_steering_angle = false;
+    const double steering_angle_threshold = 1.0; // [rad]
 
-    bool refine_for_wheel_speed = false;
-    double wheel_speed_ratio_threshold = 5.8 / config.getWheelRadius(); // [(rad/s)/(m/s)]
+    const bool refine_for_wheel_speed = false;
+    const double wheel_speed_ratio_threshold = 5.8 / config.getWheelRadius(); // [(rad/s)/(m/s)]
 
     // get existing data
 #if USE_NLOPT
@@ -38,15 +38,15 @@ int main()
                             "opt_steering_angle [rad]",
                             "opt_yawrate [rad/s]"});
 
-        std::vector<std::vector<double>> values = {
+        const std::vector<std::vector<double>> values = {
             {0.25, 0.25, 10.0}, // vx
             {0.0, 0.1, 2.01},   // vy / vx
         };
         std::vector<std::vector<double>> trial_points = combinations(values);
         for (uint i = 0; i < trial_points.size(); ++i)
         {
-            double vx_target = trial_points[i][0];
-            double vy_target = trial_points[i][1] * vx_target;
+            const double vx_target = trial_points[i][0];
+            const double vy_target = trial_points[i][1] * vx_target;
             csv_data.push_back({std::to_string(vx_target),
                                 std::to_string(vy_target / vx_target),
                                 "1.0e5",   // initial score
@@ -80,7 +80,7 @@ int main()
         writeEverythingToCSV(backup_filename, csv_data);
     }
 
-    uint n_points = csv_data.size();
+    const uint n_points = csv_data.size();
 
 #if USE_NLOPT
 #pragma omp parallel for

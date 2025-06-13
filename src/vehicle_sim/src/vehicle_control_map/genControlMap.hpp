@@ -41,7 +41,7 @@ void stabilizeWheelSpeeds(Vehicle2D &vehicle)
     // stabilize wheel speeds (to solve equilibrium for non-driven wheels)
     // get data
     Vehicle2DData &data = vehicle.getVehicle2DData();
-    Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
+    const Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
 
     // calculate approximate wheel speeds
     const double steering_angle = data.getSteeringAngle();
@@ -116,7 +116,7 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
     // load data
     Vehicle2D &vehicle = *static_cast<Vehicle2D *>(f_data);
     Vehicle2DData &data = vehicle.getVehicle2DData();
-    Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
+    const Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
 
     // get target data
     double vx_target, vy_target;
@@ -165,7 +165,7 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
     else
     {
         std::cerr << "Unknown drivetrain type!" << std::endl;
-        return 1e6;
+        return 1.0e5;
     }
     data.setWheelVelocities(w_wheel);
 
@@ -193,7 +193,7 @@ double cost_function(const std::vector<double> &x, std::vector<double> &grad, vo
     return score;
 }
 
-std::vector<std::vector<double>> combinations(std::vector<std::vector<double>> &values)
+std::vector<std::vector<double>> combinations(const std::vector<std::vector<double>> &values)
 {
     // values is a vector of vectors, where each inner vector contains lower bound, step size, upper bound for that dimension
     std::vector<std::vector<double>> trial_points;
@@ -234,9 +234,9 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
 {
     // get data and config from vehicle object
     Vehicle2DData &data = vehicle.getVehicle2DData();
-    Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
+    const Vehicle2DConfig &config = vehicle.getVehicle2DConfig();
 
-    double max_yaw_rate = 5.0; // [rad/s] maximum yaw rate
+    const double max_yaw_rate = 5.0; // [rad/s] maximum yaw rate
     // double vx_front_target = vx_target;
     // double vy_front_target = vy_target + max_yaw_rate * config.getA();
     // double max_kinematic_steering_angle = std::atan2(vy_front_target, vx_front_target);
@@ -283,7 +283,7 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
         std::cout << "nlopt failed: " << e.what() << std::endl;
     }
 #elif USE_BRUTESOLVER
-    std::vector<uint> n_trials = {
+    const std::vector<uint> n_trials = {
         80, 80, 80};
 
     // set up solver
@@ -297,8 +297,8 @@ double optimize(Vehicle2D &vehicle, double vx_target, double vy_target)
     solver.setBounds(lb, ub);
     solver.setNTrials(n_trials);
     solver.setNRefinements(50);
-    solver.setCostThreshold(1.0e-5);
-    solver.setReductionRatio(0.75);
+    solver.setCostThreshold(1.0e-4);
+    solver.setReductionRatio(0.4);
     solver.printOutput(false);
 
     // optimize
